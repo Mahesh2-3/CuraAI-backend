@@ -17,6 +17,15 @@ async function processAiResponse(userId, conversationId) {
     const basicInfo = res.data?.basicInfo;
     const settings = res.data?.settings;
 
+    const snapshot = await db
+      .collection("users")
+      .doc(userId)
+      .collection("conversations")
+      .doc(conversationId)
+      .collection("messages")
+      .orderBy("createdAt", "asc")
+      .get();
+
     const conversationText = snapshot.docs
       .filter((doc) => doc.data().status !== "loading")
       .map((doc) => {
