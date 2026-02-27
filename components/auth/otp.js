@@ -1,16 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const nodemailer = require("nodemailer");
-const admin = require("firebase-admin");
-const serviceAcc = require("../../serviceAccount.json");
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAcc),
-  });
-}
-
-const db = admin.firestore();
+const { admin, db } = require("../../firebase.js");
 
 // Nodemailer configuration
 const transporter = nodemailer.createTransport({

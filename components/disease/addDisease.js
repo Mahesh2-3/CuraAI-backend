@@ -2,17 +2,8 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
-const admin = require("firebase-admin");
-const serviceAcc = require("../../serviceAccount.json");
+const { admin, db } = require("../../firebase.js");
 const { getDefaultData } = require("../getdeaultData");
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAcc),
-  });
-}
-
-const db = admin.firestore();
 
 const slugify = (text) =>
   text

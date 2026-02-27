@@ -1,14 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const admin = require("firebase-admin");
-const serviceAcc = require("../../serviceAccount.json");
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAcc),
-  });
-}
+const { admin, db } = require("../../firebase.js");
 
 router.post("/", async (req, res) => {
   const { userId } = req.body;

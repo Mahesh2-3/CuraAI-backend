@@ -27,7 +27,6 @@ app.use("/get-summary", getSummary);
 app.use("/delete-conversation", deleteConvo);
 app.use("/delete-all-conversations", deleteAllConvo);
 app.use("/create-default-settings", createDefault);
-app.use("/med-ai", require("./components/med-ai"));
 app.use("/auth", authRoutes);
 
 app.listen(port, () => {

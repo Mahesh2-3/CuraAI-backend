@@ -2,20 +2,10 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
-const admin = require("firebase-admin");
-const serviceAcc = require("../serviceAccount.json");
+const { admin, db } = require("../firebase.js");
 const { getDefaultData } = require("./getdeaultData");
 
 console.log("🟡 AI ROUTER LOADED");
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAcc),
-  });
-  console.log("🟢 Firebase Admin initialized");
-}
-
-const db = admin.firestore();
 
 async function processAiResponse(userId, conversationId) {
   console.log("🟡 processAiResponse START", { userId, conversationId });
