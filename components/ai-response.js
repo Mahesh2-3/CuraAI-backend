@@ -5,13 +5,8 @@ const axios = require("axios");
 const { admin, db } = require("../firebase.js");
 const { getDefaultData } = require("./getdeaultData");
 
-console.log("🟡 AI ROUTER LOADED");
-
 async function processAiResponse(userId, conversationId) {
-  console.log("🟡 processAiResponse START", { userId, conversationId });
-
   try {
-    console.log("🟡 Fetching default user data...");
     const res = await getDefaultData(userId);
 
     if (!res?.success) {
@@ -22,23 +17,6 @@ async function processAiResponse(userId, conversationId) {
     const basicInfo = res.data?.basicInfo;
     const settings = res.data?.settings;
 
-    console.log("🟢 User data fetched", {
-      hasBasicInfo: !!basicInfo,
-      settingsKeys: Object.keys(settings || {}),
-    });
-
-    console.log("🟡 Fetching conversation messages...");
-    const snapshot = await db
-      .collection("users")
-      .doc(userId)
-      .collection("conversations")
-      .doc(conversationId)
-      .collection("messages")
-      .orderBy("createdAt", "asc")
-      .get();
-
-    console.log(`🟢 Total messages fetched: ${snapshot.size}`);
-
     const conversationText = snapshot.docs
       .filter((doc) => doc.data().status !== "loading")
       .map((doc) => {
@@ -47,9 +25,6 @@ async function processAiResponse(userId, conversationId) {
       })
       .join("\n");
 
-    console.log("🟡 Conversation text length:", conversationText.length);
-
-    console.log("🟡 Searching for loading assistant message...");
     const loadingSnap = await db
       .collection("users")
       .doc(userId)
@@ -68,9 +43,7 @@ async function processAiResponse(userId, conversationId) {
     }
 
     const loadingDocRef = loadingSnap.docs[0].ref;
-    console.log("🟢 Loading message found:", loadingDocRef.id);
 
-    console.log("🟡 Sending request to AI service...");
     const aiResponse = await axios.post(
       `${process.env.PYTHON_URL}/chat`,
       {
@@ -81,8 +54,6 @@ async function processAiResponse(userId, conversationId) {
       { timeout: 120000 },
     );
 
-    console.log("🟢 AI responded successfully");
-
     const aiReply = aiResponse.data?.reply;
 
     if (!aiReply) {
@@ -90,14 +61,11 @@ async function processAiResponse(userId, conversationId) {
       return;
     }
 
-    console.log("🟡 Updating Firestore message...");
     await loadingDocRef.update({
       content: aiReply,
       status: "done",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-
-    console.log("🟢 Message updated successfully");
   } catch (error) {
     console.error("🔴 processAiResponse ERROR", {
       message: error.message,
@@ -107,12 +75,8 @@ async function processAiResponse(userId, conversationId) {
 }
 
 router.post("/", async (req, res) => {
-  console.log("🟡 /ai endpoint hit");
-
   try {
     const { userId, conversationId } = req.body;
-
-    console.log("📦 Request body:", { userId, conversationId });
 
     if (!userId || !conversationId) {
       console.warn("🟠 Missing userId or conversationId");
@@ -120,7 +84,6 @@ router.post("/", async (req, res) => {
     }
 
     res.send({ started: true });
-    console.log("🟢 Response sent to client");
 
     processAiResponse(userId, conversationId);
   } catch (error) {

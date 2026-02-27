@@ -22,7 +22,6 @@ if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAcc),
   });
-  console.log("🟢 Firebase Admin initialized via config");
 }
 
 const db = admin.firestore();

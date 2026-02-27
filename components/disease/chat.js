@@ -6,10 +6,6 @@ const { admin, db } = require("../../firebase.js");
 const { getDefaultData } = require("../getdeaultData");
 
 async function processAiResponse(userId, diseaseId) {
-  console.log("🧠 AI PROCESS STARTED");
-  console.log("➡ userId:", userId);
-  console.log("➡ diseaseId:", diseaseId);
-
   try {
     const res = await getDefaultData(userId);
     if (!res.success) {
@@ -20,7 +16,6 @@ async function processAiResponse(userId, diseaseId) {
     /* =========================
        FETCH DISEASE DOCUMENT
     ========================= */
-    console.log("📄 Fetching disease document...");
 
     const diseaseRef = db
       .collection("users")
@@ -36,23 +31,15 @@ async function processAiResponse(userId, diseaseId) {
     }
 
     const diseaseData = diseaseSnap.data();
-    console.log("✅ Disease fetched:", {
-      diseaseName: diseaseData.diseaseName,
-      hasAnalysis: !!diseaseData.analysis,
-      hasHistory: !!diseaseData.history,
-    });
 
     /* =========================
        FETCH CHAT
     ========================= */
-    console.log("💬 Fetching chat messages...");
 
     const chatSnap = await diseaseRef
       .collection("chat")
       .orderBy("createdAt", "asc")
       .get();
-
-    console.log(`💬 Chat messages found: ${chatSnap.size}`);
 
     const conversationText = chatSnap.docs
       .filter((doc) => doc.data().status !== "loading")
@@ -61,16 +48,6 @@ async function processAiResponse(userId, diseaseId) {
         return `${role}: ${content}`;
       })
       .join("\n");
-
-    console.log(
-      "📝 Conversation preview:",
-      conversationText.slice(0, 300) || "EMPTY",
-    );
-
-    /* =========================
-       FIND LOADING MESSAGE
-    ========================= */
-    console.log("⏳ Looking for loading assistant message...");
 
     const loadingSnap = await diseaseRef
       .collection("chat")
@@ -86,12 +63,10 @@ async function processAiResponse(userId, diseaseId) {
     }
 
     const loadingDocRef = loadingSnap.docs[0].ref;
-    console.log("✅ Loading message found:", loadingDocRef.id);
 
     /* =========================
        CALL AI SERVICE
     ========================= */
-    console.log("🤖 Sending data to AI service...");
 
     const payload = {
       basicInfo,
@@ -106,30 +81,17 @@ async function processAiResponse(userId, diseaseId) {
       conversation: conversationText,
     };
 
-    console.log("📦 AI Payload (summary):", {
-      diseaseName: payload.disease.diseaseName,
-      conversationLength: payload.conversation.length,
-      analysisCount: payload.disease.analysis.length,
-    });
-
     const aiResponse = await axios.post(
       `${process.env.PYTHON_URL}/disease/disease_analysis`,
       payload,
       { timeout: 120000 },
     );
 
-    console.log("🤖 AI response received");
-
     const { reply, analysis, threatUpdate } = aiResponse.data;
-
-    console.log("🗣 AI Reply preview:", reply?.slice(0, 200));
-    console.log("📊 Analysis points:", analysis?.length || 0);
-    console.log("⚠ Threat update:", threatUpdate || "none");
 
     /* =========================
        UPDATE CHAT MESSAGE
     ========================= */
-    console.log("✏ Updating assistant message...");
 
     await loadingDocRef.update({
       content: reply || "No response generated.",
@@ -137,13 +99,10 @@ async function processAiResponse(userId, diseaseId) {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log("✅ Chat message updated");
-
     /* =========================
        UPDATE ANALYSIS
     ========================= */
     if (Array.isArray(analysis) && analysis.length > 0) {
-      console.log("📈 Appending analysis points...");
       await diseaseRef.update({
         analysis: admin.firestore.FieldValue.arrayUnion(...analysis),
       });
@@ -153,7 +112,6 @@ async function processAiResponse(userId, diseaseId) {
        UPDATE THREAT HISTORY
     ========================= */
     if (threatUpdate?.percentage) {
-      console.log("🚨 Updating threat history:", threatUpdate.percentage);
       await diseaseRef.update({
         history: admin.firestore.FieldValue.arrayUnion({
           date: new Date().toISOString().split("T")[0],
@@ -161,8 +119,6 @@ async function processAiResponse(userId, diseaseId) {
         }),
       });
     }
-
-    console.log("🎉 AI PROCESS COMPLETED SUCCESSFULLY");
   } catch (error) {
     console.error("🔥 AI PROCESS FAILED");
     console.error("Message:", error.message);

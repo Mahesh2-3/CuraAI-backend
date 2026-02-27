@@ -5,7 +5,6 @@ const { admin, db } = require("../firebase.js");
 router.post("/", async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log("🟢 Creating default settings for:", userId);
 
     const settingsRef = db
       .collection("users")
@@ -15,7 +14,6 @@ router.post("/", async (req, res) => {
     const doc = await settingsRef.get();
 
     if (doc.exists) {
-      console.log("⚠️ Settings already exist, skipping:", userId);
       return;
     }
 

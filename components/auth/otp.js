@@ -30,7 +30,6 @@ router.post("/send-otp", async (req, res) => {
           new Date(Date.now() + 10 * 60 * 1000),
         ),
       });
-    console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
 
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       const mailOptions = {
@@ -54,11 +53,6 @@ router.post("/send-otp", async (req, res) => {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`📧 OTP Sent to ${email}`);
-    } else {
-      console.log(`\n===============================`);
-      console.log(`📧 DEV MODE: OTP for ${email} is ${otp}`);
-      console.log(`===============================\n`);
     }
 
     return res

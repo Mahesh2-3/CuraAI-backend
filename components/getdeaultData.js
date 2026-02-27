@@ -41,7 +41,6 @@ async function getDefaultData(userId) {
       message: "fetched data sucessfully",
     };
   } catch (error) {
-    console.log(error);
     return {
       success: false,
       data: {},
