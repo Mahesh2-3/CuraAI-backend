@@ -54,7 +54,7 @@ async function ProcessAnalysis(userId, conversationId) {
 
   try {
     const response = await axios.post(
-      `${process.env.PYTHON_URL || "http://127.0.0.1:5001"}/analysis`,
+      `${process.env.PYTHON_URL}/analysis`,
       data,
       {
         timeout: 120000,

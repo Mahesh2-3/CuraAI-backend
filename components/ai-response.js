@@ -82,7 +82,7 @@ async function processAiResponse(userId, conversationId) {
 
     console.log("🟡 Sending request to AI service...");
     const aiResponse = await axios.post(
-      `${process.env.PYTHON_URL || "http://127.0.0.1:5001"}/chat`,
+      `${process.env.PYTHON_URL}/chat`,
       {
         basicInfo,
         aiBehavior: settings.aiBehavior,

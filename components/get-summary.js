@@ -95,7 +95,7 @@ async function processSummary(userId, param) {
   console.dir(payload, { depth: null });
 
   const response = await axios.post(
-    `${process.env.PYTHON_URL || "http://127.0.0.1:5001"}/get-summary`,
+    `${process.env.PYTHON_URL}/get-summary`,
     payload,
     { timeout: 120000 },
   );

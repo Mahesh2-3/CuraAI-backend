@@ -36,7 +36,7 @@ async function addDisease(userId, diseaseName, details) {
 
     // 🔹 Call Flask AI service
     const aiRes = await axios.post(
-      `${process.env.PYTHON_URL || "http://127.0.0.1:5001"}/disease/recommendations`,
+      `${process.env.PYTHON_URL}/disease/recommendations`,
       {
         basicInfo,
         aiBehavior: settings.aiBehavior,

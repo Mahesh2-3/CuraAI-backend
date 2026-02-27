@@ -14,7 +14,7 @@ const createDefault = require("./components/create-default");
 const authRoutes = require("./components/auth/otp");
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -31,5 +31,5 @@ app.use("/med-ai", require("./components/med-ai"));
 app.use("/auth", authRoutes);
 
 app.listen(port, () => {
-  console.log("Backend running on the port 5000");
+  console.log(`Backend running on the port ${port}`);
 });

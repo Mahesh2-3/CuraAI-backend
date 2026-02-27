@@ -122,7 +122,7 @@ async function processAiResponse(userId, diseaseId) {
     });
 
     const aiResponse = await axios.post(
-      `${process.env.PYTHON_URL || "http://127.0.0.1:5001"}/disease/disease_analysis`,
+      `${process.env.PYTHON_URL}/disease/disease_analysis`,
       payload,
       { timeout: 120000 },
     );
