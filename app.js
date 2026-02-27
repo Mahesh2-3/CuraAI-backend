@@ -29,4 +29,8 @@ app.use("/delete-all-conversations", deleteAllConvo);
 app.use("/create-default-settings", createDefault);
 app.use("/auth", authRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 app.listen(port, () => {});
