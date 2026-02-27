@@ -10,7 +10,6 @@ async function processAiResponse(userId, conversationId) {
     const res = await getDefaultData(userId);
 
     if (!res?.success) {
-      console.error("🔴 Failed to fetch default data", res);
       return;
     }
 
@@ -47,7 +46,6 @@ async function processAiResponse(userId, conversationId) {
       .get();
 
     if (loadingSnap.empty) {
-      console.warn("🟠 No loading assistant message found");
       return;
     }
 
@@ -66,7 +64,6 @@ async function processAiResponse(userId, conversationId) {
     const aiReply = aiResponse.data?.reply;
 
     if (!aiReply) {
-      console.error("🔴 AI reply is empty", aiResponse.data);
       return;
     }
 
@@ -75,12 +72,7 @@ async function processAiResponse(userId, conversationId) {
       status: "done",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-  } catch (error) {
-    console.error("🔴 processAiResponse ERROR", {
-      message: error.message,
-      stack: error.stack,
-    });
-  }
+  } catch (error) {}
 }
 
 router.post("/", async (req, res) => {
@@ -88,7 +80,6 @@ router.post("/", async (req, res) => {
     const { userId, conversationId } = req.body;
 
     if (!userId || !conversationId) {
-      console.warn("🟠 Missing userId or conversationId");
       return res.status(400).json({ error: "Missing data" });
     }
 
@@ -96,10 +87,6 @@ router.post("/", async (req, res) => {
 
     processAiResponse(userId, conversationId);
   } catch (error) {
-    console.error("🔴 AI ROUTE ERROR", {
-      message: error.message,
-      stack: error.stack,
-    });
     res.status(500).json({ error: "AI processing failed" });
   }
 });

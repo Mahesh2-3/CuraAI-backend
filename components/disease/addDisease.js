@@ -63,7 +63,6 @@ async function addDisease(userId, diseaseName, details) {
       message: "Successfully added",
     };
   } catch (error) {
-    console.error(error);
     return {
       status: 500,
       message: "Internal server error",

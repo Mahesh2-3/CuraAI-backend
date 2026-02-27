@@ -14,9 +14,7 @@ if (!admin.apps.length) {
     // 2. Development Mode: Fall back to local file
     try {
       serviceAcc = require("./serviceAccount.json");
-    } catch (error) {
-      console.error("Firebase credentials not found!");
-    }
+    } catch (error) {}
   }
 
   admin.initializeApp({

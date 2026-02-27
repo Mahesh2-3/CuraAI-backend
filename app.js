@@ -29,6 +29,4 @@ app.use("/delete-all-conversations", deleteAllConvo);
 app.use("/create-default-settings", createDefault);
 app.use("/auth", authRoutes);
 
-app.listen(port, () => {
-  console.log(`Backend running on the port ${port}`);
-});
+app.listen(port, () => {});

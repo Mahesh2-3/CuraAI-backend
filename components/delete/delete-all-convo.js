@@ -25,8 +25,6 @@ router.post("/", async (req, res) => {
       message: "All conversations deleted successfully",
     });
   } catch (err) {
-    console.error("📛 Full error:", err);
-
     res.status(500).json({ error: "Delete all failed" });
   }
 });

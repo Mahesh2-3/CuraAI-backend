@@ -26,7 +26,6 @@ async function processAiResponse(userId, diseaseId) {
     const diseaseSnap = await diseaseRef.get();
 
     if (!diseaseSnap.exists) {
-      console.error("❌ Disease document NOT FOUND");
       return;
     }
 
@@ -58,7 +57,6 @@ async function processAiResponse(userId, diseaseId) {
       .get();
 
     if (loadingSnap.empty) {
-      console.warn("⚠ No loading assistant message found");
       return;
     }
 
@@ -120,13 +118,7 @@ async function processAiResponse(userId, diseaseId) {
       });
     }
   } catch (error) {
-    console.error("🔥 AI PROCESS FAILED");
-    console.error("Message:", error.message);
-    console.error("Stack:", error.stack);
-
     if (error.response) {
-      console.error("AI RESPONSE STATUS:", error.response.status);
-      console.error("AI RESPONSE DATA:", error.response.data);
     }
   }
 }
@@ -143,7 +135,6 @@ router.post("/", async (req, res) => {
 
     processAiResponse(userId, diseaseId);
   } catch (error) {
-    console.error("AI ERROR:", error.message);
     res.status(500).json({ error: "AI processing failed" });
   }
 });

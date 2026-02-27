@@ -64,9 +64,7 @@ async function ProcessAnalysis(userId, conversationId) {
         },
         { merge: true },
       );
-  } catch (error) {
-    console.error(error.message);
-  }
+  } catch (error) {}
 }
 
 router.post("/", async (req, res) => {
@@ -77,7 +75,6 @@ router.post("/", async (req, res) => {
     }
     ProcessAnalysis(userId, conversationId);
   } catch (error) {
-    console.error(error.message);
     res.status(500).json({ error: error.message });
   }
 });

@@ -125,7 +125,6 @@ router.post("/", async (req, res) => {
       message: "Summary generated successfully",
     });
   } catch (err) {
-    console.error(err);
     return res.status(500).json({
       success: false,
       error: "Failed to generate summary",

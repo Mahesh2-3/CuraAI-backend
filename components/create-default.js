@@ -45,7 +45,6 @@ router.post("/", async (req, res) => {
     res.send({ success: true, status: 200 });
   } catch (error) {
     res.send({ success: false, status: 500 });
-    console.error("❌ Failed to create default settings:", error);
   }
 });
 
