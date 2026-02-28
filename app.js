@@ -16,7 +16,28 @@ const authRoutes = require("./components/auth/otp");
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Allow non-browser clients
+
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      process.env.FRONTEND_URL_ALT,
+      process.env.PYTHON_SERVER_URL,
+    ].filter(Boolean);
+
+    if (
+      origin.startsWith("http://localhost:") ||
+      origin.startsWith("http://127.0.0.1:") ||
+      allowedOrigins.includes(origin)
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/ai-response", aiResponse);
