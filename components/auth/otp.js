@@ -105,4 +105,58 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "Email, OTP, and new password are required" });
+    }
+
+    const docRef = db.collection("otps").doc(email);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      return res
+        .status(400)
+        .json({ error: "No OTP request found for this email" });
+    }
+
+    const data = docSnap.data();
+
+    // Check expiration
+    if (data.expiresAt.toDate() < new Date()) {
+      await docRef.delete(); // Cleanup expired
+      return res
+        .status(400)
+        .json({ error: "OTP has expired. Please request a new one." });
+    }
+
+    // Verify OTP
+    if (data.otp !== otp) {
+      return res.status(400).json({ error: "Invalid OTP" });
+    }
+
+    // Attempt to get user by email
+    const userRecord = await admin.auth().getUserByEmail(email);
+
+    // Update password
+    await admin.auth().updateUser(userRecord.uid, {
+      password: newPassword,
+    });
+
+    // Success! Delete the OTP doc so it can't be reused
+    await docRef.delete();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Failed to reset password", details: error.message });
+  }
+});
+
 module.exports = router;
