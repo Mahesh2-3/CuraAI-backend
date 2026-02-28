@@ -4,6 +4,7 @@ const axios = require("axios");
 
 const { admin, db } = require("../firebase.js");
 const { getDefaultData } = require("./getdeaultData");
+const { ProcessAnalysis } = require("./analysis");
 
 async function processAiResponse(userId, conversationId) {
   try {
@@ -72,6 +73,9 @@ async function processAiResponse(userId, conversationId) {
       status: "done",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+
+    // Trigger analysis asynchronously
+    ProcessAnalysis(userId, conversationId);
   } catch (error) {}
 }
 
