@@ -8,9 +8,16 @@ const { ProcessAnalysis } = require("./analysis");
 
 async function processAiResponse(userId, conversationId) {
   try {
+    console.log(
+      `[AI-Response] Starting processAiResponse for userId: ${userId}, conversationId: ${conversationId}`,
+    );
+
     const res = await getDefaultData(userId);
 
     if (!res?.success) {
+      console.warn(
+        `[AI-Response] Failed to get default data for userId: ${userId}`,
+      );
       return;
     }
 
@@ -47,6 +54,9 @@ async function processAiResponse(userId, conversationId) {
       .get();
 
     if (loadingSnap.empty) {
+      console.warn(
+        `[AI-Response] No loading message found for conversationId: ${conversationId}`,
+      );
       return;
     }
 
@@ -62,9 +72,16 @@ async function processAiResponse(userId, conversationId) {
       { timeout: 120000 },
     );
 
+    console.log(
+      `[AI-Response] Received AI reply for conversationId: ${conversationId}, status: ${aiResponse.status}`,
+    );
+
     const aiReply = aiResponse.data?.reply;
 
     if (!aiReply) {
+      console.warn(
+        `[AI-Response] No AI reply found in the response for conversationId: ${conversationId}`,
+      );
       return;
     }
 
@@ -75,15 +92,24 @@ async function processAiResponse(userId, conversationId) {
     });
 
     // Trigger analysis asynchronously
+    console.log(
+      `[AI-Response] Triggering analysis for conversationId: ${conversationId}`,
+    );
     ProcessAnalysis(userId, conversationId);
-  } catch (error) {}
+  } catch (error) {
+    console.error(`[AI-Response] Error in processAiResponse:`, error);
+  }
 }
 
 router.post("/", async (req, res) => {
   try {
     const { userId, conversationId } = req.body;
+    console.log(
+      `[AI-Response] Received POST request with userId: ${userId}, conversationId: ${conversationId}`,
+    );
 
     if (!userId || !conversationId) {
+      console.warn(`[AI-Response] Missing data in POST request`);
       return res.status(400).json({ error: "Missing data" });
     }
 
@@ -91,6 +117,7 @@ router.post("/", async (req, res) => {
 
     processAiResponse(userId, conversationId);
   } catch (error) {
+    console.error(`[AI-Response] Error in POST endpoint:`, error);
     res.status(500).json({ error: "AI processing failed" });
   }
 });
