@@ -40,12 +40,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Global logging middleware to log every incoming request
-app.use((req, res, next) => {
-  console.log(`[Incoming Request] ${req.method} ${req.url}`);
-  next();
+const rateLimit = require("express-rate-limit");
+const reportRoute = require("./components/report");
+
+// Rate limiting middleware
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
 });
 
+app.use(limiter);
 app.use("/ai-response", aiResponse);
 app.use("/analysis", analysis);
 app.use("/add-disease", addDisease);
@@ -55,6 +60,7 @@ app.use("/delete-conversation", deleteConvo);
 app.use("/delete-all-conversations", deleteAllConvo);
 app.use("/create-default-settings", createDefault);
 app.use("/auth", authRoutes);
+app.use("/report", reportRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

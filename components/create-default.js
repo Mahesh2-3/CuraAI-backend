@@ -5,7 +5,6 @@ const { admin, db } = require("../firebase.js");
 router.post("/", async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log(`[Create-Default] Received POST request userId: ${userId}`);
 
     const settingsRef = db
       .collection("users")
@@ -13,18 +12,13 @@ router.post("/", async (req, res) => {
       .collection("settings")
       .doc("preferences");
 
-    console.log(`[Create-Default] Checking if settings exist...`);
     const doc = await settingsRef.get();
 
     if (doc.exists) {
-      console.log(
-        `[Create-Default] Settings already exist for user ${userId}, returning...`,
-      );
       res.send({ success: true, status: 200, message: "Already exists" });
       return;
     }
 
-    console.log(`[Create-Default] Initializing default settings...`);
     await settingsRef.set(
       {
         summary: {
@@ -50,12 +44,8 @@ router.post("/", async (req, res) => {
       { merge: true },
     );
 
-    console.log(
-      `[Create-Default] Successfully initialized default settings for user ${userId}`,
-    );
     res.send({ success: true, status: 200 });
   } catch (error) {
-    console.error(`[Create-Default] Error creating default settings:`, error);
     res.send({ success: false, status: 500 });
   }
 });

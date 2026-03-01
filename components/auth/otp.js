@@ -15,18 +15,13 @@ const transporter = nodemailer.createTransport({
 router.post("/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
-    console.log(`[Auth] /send-otp Received POST request for email: ${email}`);
     if (!email) {
-      console.warn(`[Auth] /send-otp Missing email in request`);
       return res.status(400).json({ error: "Email is required" });
     }
 
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    console.log(
-      `[Auth] /send-otp Generated OTP, saving to Firestore with 10m expiration...`,
-    );
     // Store in Firestore with a 10 minute expiration
     await db
       .collection("otps")
@@ -39,9 +34,6 @@ router.post("/send-otp", async (req, res) => {
       });
 
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      console.log(
-        `[Auth] /send-otp Sending email via Nodemailer to ${email}...`,
-      );
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -63,19 +55,13 @@ router.post("/send-otp", async (req, res) => {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`[Auth] /send-otp Email sent successfully`);
     } else {
-      console.warn(
-        `[Auth] /send-otp EMAIL_USER or EMAIL_PASS not set, skipping email send`,
-      );
     }
 
-    console.log(`[Auth] /send-otp Successfully completed for email: ${email}`);
     return res
       .status(200)
       .json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
-    console.error(`[Auth] /send-otp Error:`, error);
     return res
       .status(500)
       .json({ error: "Failed to send OTP", details: error.message });
@@ -85,20 +71,14 @@ router.post("/send-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
-    console.log(`[Auth] /verify-otp Received POST request for email: ${email}`);
     if (!email || !otp) {
-      console.warn(`[Auth] /verify-otp Missing email or OTP in request`);
       return res.status(400).json({ error: "Email and OTP are required" });
     }
 
-    console.log(`[Auth] /verify-otp Checking OTP in Firestore...`);
     const docRef = db.collection("otps").doc(email);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      console.warn(
-        `[Auth] /verify-otp No OTP request found for email: ${email}`,
-      );
       return res
         .status(400)
         .json({ error: "No OTP request found for this email" });
@@ -116,24 +96,16 @@ router.post("/verify-otp", async (req, res) => {
 
     // Verify OTP
     if (data.otp !== otp) {
-      console.warn(
-        `[Auth] /verify-otp Invalid OTP provided for email: ${email}`,
-      );
       return res.status(400).json({ error: "Invalid OTP" });
     }
 
     // Success! Delete the OTP doc so it can't be reused
-    console.log(`[Auth] /verify-otp Valid OTP, deleting doc from Firestore...`);
     await docRef.delete();
 
-    console.log(
-      `[Auth] /verify-otp Successfully completed for email: ${email}`,
-    );
     return res
       .status(200)
       .json({ success: true, message: "OTP verified successfully" });
   } catch (error) {
-    console.error(`[Auth] /verify-otp Error:`, error);
     return res.status(500).json({ error: "Failed to verify OTP" });
   }
 });
@@ -141,17 +113,12 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
-    console.log(
-      `[Auth] /reset-password Received POST request for email: ${email}`,
-    );
     if (!email || !otp || !newPassword) {
-      console.warn(`[Auth] /reset-password Missing data in request`);
       return res
         .status(400)
         .json({ error: "Email, OTP, and new password are required" });
     }
 
-    console.log(`[Auth] /reset-password Verifying OTP before reset...`);
     const docRef = db.collection("otps").doc(email);
     const docSnap = await docRef.get();
 
@@ -173,15 +140,9 @@ router.post("/reset-password", async (req, res) => {
 
     // Verify OTP
     if (data.otp !== otp) {
-      console.warn(
-        `[Auth] /reset-password Invalid OTP provided for email: ${email}`,
-      );
       return res.status(400).json({ error: "Invalid OTP" });
     }
 
-    console.log(
-      `[Auth] /reset-password OTP verified. Updating password via Firebase Admin Auth...`,
-    );
     // Attempt to get user by email
     const userRecord = await admin.auth().getUserByEmail(email);
 
@@ -191,22 +152,45 @@ router.post("/reset-password", async (req, res) => {
     });
 
     // Success! Delete the OTP doc so it can't be reused
-    console.log(
-      `[Auth] /reset-password Password updated successfully, deleting OTP doc...`,
-    );
     await docRef.delete();
 
-    console.log(
-      `[Auth] /reset-password Successfully completed for email: ${email}`,
-    );
     return res
       .status(200)
       .json({ success: true, message: "Password updated successfully" });
   } catch (error) {
-    console.error(`[Auth] /reset-password Error:`, error);
     return res
       .status(500)
       .json({ error: "Failed to reset password", details: error.message });
+  }
+});
+
+router.post("/delete-account", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const userRecord = await admin.auth().getUserByEmail(email);
+
+    // 1. Delete user's Firestore data based on uid
+    const uid = userRecord.uid;
+    await db.collection("users").doc(uid).delete();
+
+    // We should ideally delete subcollections recursively, but for now we just delete the root doc
+    // Note: To be fully clean, we'd delete conversations, diseases, settings etc.
+
+    // 2. Delete the user from Firebase Auth
+    await admin.auth().deleteUser(uid);
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Failed to delete account", details: error.message });
   }
 });
 
