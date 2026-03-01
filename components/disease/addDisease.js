@@ -14,12 +14,19 @@ const slugify = (text) =>
 
 async function addDisease(userId, diseaseName, details) {
   try {
+    console.log(
+      `[AddDisease] Starting addDisease for userId: ${userId}, disease: ${diseaseName}`,
+    );
     const res = await getDefaultData(userId);
     if (!res.success) {
+      console.warn(
+        `[AddDisease] Failed to get default data for user: ${userId}`,
+      );
       return;
     }
     const basicInfo = res.data?.basicInfo;
     const settings = res.data?.settings;
+    console.log(`[AddDisease] Requesting recommendations from Python AI...`);
     const diseaseRef = db
       .collection("users")
       .doc(userId)
@@ -38,9 +45,13 @@ async function addDisease(userId, diseaseName, details) {
     );
 
     const recommendations = aiRes.data.recommendations || [];
+    console.log(
+      `[AddDisease] Received recommendations from Python server, count: ${recommendations.length}`,
+    );
 
     const now = admin.firestore.Timestamp.now();
 
+    console.log(`[AddDisease] Saving new disease to Firestore...`);
     await diseaseRef.add({
       diseaseName,
       slug: slugify(diseaseName),
@@ -58,6 +69,9 @@ async function addDisease(userId, diseaseName, details) {
       createdAt: now,
     });
 
+    console.log(
+      `[AddDisease] Successfully added disease ${diseaseName} for user ${userId}`,
+    );
     return {
       status: 200,
       message: "Successfully added",
@@ -73,15 +87,20 @@ async function addDisease(userId, diseaseName, details) {
 router.post("/", async (req, res) => {
   try {
     const { userId, diseaseName, details } = req.body;
+    console.log(
+      `[AddDisease] Received POST request with userId: ${userId}, disease: ${diseaseName}`,
+    );
 
     // ✅ Correct validation
     if (!userId || !diseaseName || !details) {
+      console.warn(`[AddDisease] Missing Data in POST request`);
       return res.status(400).json({ error: "Missing Data" });
     }
 
     const result = await addDisease(userId, diseaseName, details);
     res.status(result.status).json({ message: result.message });
   } catch (error) {
+    console.error(`[AddDisease] Error in POST endpoint:`, error);
     res.status(500).json({ message: "Internal server error" });
   }
 });

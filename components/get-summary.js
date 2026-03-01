@@ -58,8 +58,14 @@ async function getDiseasesData(userId, param) {
 ========================= */
 
 async function processSummary(userId, param) {
+  console.log(
+    `[Get-Summary] Starting processSummary for userId: ${userId}, param: ${param}`,
+  );
   const res = await getDefaultData(userId);
   if (!res.success) {
+    console.warn(
+      `[Get-Summary] Failed to get default data for user: ${userId}`,
+    );
     return;
   }
   const basicInfo = res.data?.basicInfo;
@@ -70,10 +76,16 @@ async function processSummary(userId, param) {
   const shouldFetchDiseases =
     mode === "diseases" || mode === "chat_and_diseases";
 
+  console.log(
+    `[Get-Summary] Fetching conversation reports & diseases from Firestore... mode: ${mode}`,
+  );
   const [reports, diseases] = await Promise.all([
     shouldFetchReports ? getConversationReports(userId, param) : [],
     shouldFetchDiseases ? getDiseasesData(userId, param) : [],
   ]);
+  console.log(
+    `[Get-Summary] Fetched ${reports?.length || 0} reports and ${diseases?.length || 0} diseases`,
+  );
 
   const payload = {
     basicInfo,
@@ -85,10 +97,15 @@ async function processSummary(userId, param) {
 
   console.dir(payload, { depth: null });
 
+  console.log(`[Get-Summary] Requesting summary from Python server...`);
   const response = await axios.post(
     `${process.env.PYTHON_URL}/get-summary`,
     payload,
     { timeout: 120000 },
+  );
+
+  console.log(
+    `[Get-Summary] Received AI summary response, updating Firestore...`,
   );
 
   await db
@@ -106,6 +123,9 @@ async function processSummary(userId, param) {
       },
       { merge: true },
     );
+  console.log(
+    `[Get-Summary] Successfully finished processSummary for ${userId}`,
+  );
 }
 
 /* =========================
@@ -115,16 +135,23 @@ async function processSummary(userId, param) {
 router.post("/", async (req, res) => {
   try {
     const { userId, param } = req.body;
-    if (!userId || !param)
+    console.log(
+      `[Get-Summary] Received POST request with userId: ${userId}, param: ${param}`,
+    );
+    if (!userId || !param) {
+      console.warn(`[Get-Summary] Missing userId or param in POST request`);
       return res.status(400).json({ error: "Missing userId or param" });
+    }
 
     await processSummary(userId, param);
 
+    console.log(`[Get-Summary] Generated summary successfully`);
     return res.json({
       success: true,
       message: "Summary generated successfully",
     });
   } catch (err) {
+    console.error(`[Get-Summary] Error in POST endpoint:`, err);
     return res.status(500).json({
       success: false,
       error: "Failed to generate summary",

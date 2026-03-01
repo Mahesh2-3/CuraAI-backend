@@ -6,12 +6,19 @@ const { admin, db } = require("../firebase.js");
 const { getDefaultData } = require("./getdeaultData");
 
 async function ProcessAnalysis(userId, conversationId) {
+  console.log(
+    `[Analysis] Starting ProcessAnalysis for userId: ${userId}, conversationId: ${conversationId}`,
+  );
   const res = await getDefaultData(userId);
   if (!res.success) {
+    console.warn(`[Analysis] Failed to get default data for userId: ${userId}`);
     return;
   }
   const basicInfo = res.data?.basicInfo;
   const settings = res.data?.settings;
+  console.log(
+    `[Analysis] Fetching previous messages and reports for user ${userId}, convo ${conversationId}`,
+  );
   const snapshot1 = await db
     .collection("users")
     .doc(userId)
@@ -44,6 +51,9 @@ async function ProcessAnalysis(userId, conversationId) {
   };
 
   try {
+    console.log(
+      `[Analysis] Requesting AI analysis from ${process.env.PYTHON_URL}/analysis...`,
+    );
     const response = await axios.post(
       `${process.env.PYTHON_URL}/analysis`,
       data,
@@ -51,7 +61,11 @@ async function ProcessAnalysis(userId, conversationId) {
         timeout: 120000,
       },
     );
+    console.log(
+      `[Analysis] Received response from AI server, status: ${response.status}`,
+    );
     const aiAnalysis = response.data;
+    console.log(`[Analysis] Updating firestore with analysis report`);
     await db
       .collection("users")
       .doc(userId)
@@ -64,17 +78,28 @@ async function ProcessAnalysis(userId, conversationId) {
         },
         { merge: true },
       );
-  } catch (error) {}
+    console.log(
+      `[Analysis] Successfully finished ProcessAnalysis for ${conversationId}`,
+    );
+  } catch (error) {
+    console.error(`[Analysis] Error in ProcessAnalysis:`, error);
+  }
 }
 
 router.post("/", async (req, res) => {
   try {
     const { userId, conversationId } = req.body;
+    console.log(
+      `[Analysis] Received POST request with userId: ${userId}, conversationId: ${conversationId}`,
+    );
     if (!userId || !conversationId) {
+      console.warn(`[Analysis] Missing data in POST request`);
       return res.status(400).json({ error: "Missing data" });
     }
+    res.json({ started: true });
     ProcessAnalysis(userId, conversationId);
   } catch (error) {
+    console.error(`[Analysis] Error in POST endpoint:`, error);
     res.status(500).json({ error: error.message });
   }
 });

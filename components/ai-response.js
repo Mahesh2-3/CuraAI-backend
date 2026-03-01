@@ -13,6 +13,9 @@ async function processAiResponse(userId, conversationId) {
     );
 
     const res = await getDefaultData(userId);
+    console.log(
+      `[AI-Response] getDefaultData completed, success=${res?.success}`,
+    );
 
     if (!res?.success) {
       console.warn(
@@ -24,6 +27,9 @@ async function processAiResponse(userId, conversationId) {
     const basicInfo = res.data?.basicInfo;
     const settings = res.data?.settings;
 
+    console.log(
+      `[AI-Response] Fetching previous messages from Firestore for user ${userId} and convo ${conversationId}`,
+    );
     const snapshot = await db
       .collection("users")
       .doc(userId)
@@ -32,6 +38,7 @@ async function processAiResponse(userId, conversationId) {
       .collection("messages")
       .orderBy("createdAt", "asc")
       .get();
+    console.log(`[AI-Response] Fetched ${snapshot.size} previous messages`);
 
     const conversationText = snapshot.docs
       .filter((doc) => doc.data().status !== "loading")
@@ -53,6 +60,8 @@ async function processAiResponse(userId, conversationId) {
       .limit(1)
       .get();
 
+    console.log(`[AI-Response] Loading snap empty? ${loadingSnap.empty}`);
+
     if (loadingSnap.empty) {
       console.warn(
         `[AI-Response] No loading message found for conversationId: ${conversationId}`,
@@ -62,6 +71,9 @@ async function processAiResponse(userId, conversationId) {
 
     const loadingDocRef = loadingSnap.docs[0].ref;
 
+    console.log(
+      `[AI-Response] Sending request to Python AI server at ${process.env.PYTHON_URL}/chat`,
+    );
     const aiResponse = await axios.post(
       `${process.env.PYTHON_URL}/chat`,
       {
@@ -85,6 +97,7 @@ async function processAiResponse(userId, conversationId) {
       return;
     }
 
+    console.log(`[AI-Response] Updating Firestore loading doc with AI reply`);
     await loadingDocRef.update({
       content: aiReply,
       status: "done",
@@ -93,9 +106,12 @@ async function processAiResponse(userId, conversationId) {
 
     // Trigger analysis asynchronously
     console.log(
-      `[AI-Response] Triggering analysis for conversationId: ${conversationId}`,
+      `[AI-Response] Triggering analysis asynchronously for conversationId: ${conversationId}`,
     );
     ProcessAnalysis(userId, conversationId);
+    console.log(
+      `[AI-Response] Successfully fully finished processAiResponse for ${conversationId}`,
+    );
   } catch (error) {
     console.error(`[AI-Response] Error in processAiResponse:`, error);
   }

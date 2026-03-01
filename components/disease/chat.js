@@ -7,8 +7,14 @@ const { getDefaultData } = require("../getdeaultData");
 
 async function processAiResponse(userId, diseaseId) {
   try {
+    console.log(
+      `[Disease-Chat] Starting processAiResponse for userId: ${userId}, diseaseId: ${diseaseId}`,
+    );
     const res = await getDefaultData(userId);
     if (!res.success) {
+      console.warn(
+        `[Disease-Chat] Failed to get default data for user: ${userId}`,
+      );
       return;
     }
     const basicInfo = res.data?.basicInfo;
@@ -23,9 +29,11 @@ async function processAiResponse(userId, diseaseId) {
       .collection("diseases")
       .doc(diseaseId);
 
+    console.log(`[Disease-Chat] Fetching disease details for ${diseaseId}...`);
     const diseaseSnap = await diseaseRef.get();
 
     if (!diseaseSnap.exists) {
+      console.warn(`[Disease-Chat] Disease doc not found for ${diseaseId}`);
       return;
     }
 
@@ -56,7 +64,11 @@ async function processAiResponse(userId, diseaseId) {
       .limit(1)
       .get();
 
+    console.log(`[Disease-Chat] Loading message found? ${!loadingSnap.empty}`);
     if (loadingSnap.empty) {
+      console.warn(
+        `[Disease-Chat] No loading message found for diseaseId: ${diseaseId}`,
+      );
       return;
     }
 
@@ -79,12 +91,16 @@ async function processAiResponse(userId, diseaseId) {
       conversation: conversationText,
     };
 
+    console.log(`[Disease-Chat] Requesting AI response from Python server...`);
     const aiResponse = await axios.post(
       `${process.env.PYTHON_URL}/disease/disease_analysis`,
       payload,
       { timeout: 120000 },
     );
 
+    console.log(
+      `[Disease-Chat] Received AI response, status: ${aiResponse.status}`,
+    );
     const { reply, analysis, threatUpdate } = aiResponse.data;
 
     /* =========================
@@ -117,8 +133,16 @@ async function processAiResponse(userId, diseaseId) {
         }),
       });
     }
+    console.log(
+      `[Disease-Chat] Successfully finished processAiResponse for ${diseaseId}`,
+    );
   } catch (error) {
+    console.error(`[Disease-Chat] Error in processAiResponse:`, error);
     if (error.response) {
+      console.error(
+        `[Disease-Chat] Error response from Python server:`,
+        error.response.data,
+      );
     }
   }
 }
@@ -126,8 +150,12 @@ async function processAiResponse(userId, diseaseId) {
 router.post("/", async (req, res) => {
   try {
     const { userId, diseaseId } = req.body;
+    console.log(
+      `[Disease-Chat] Received POST request with userId: ${userId}, diseaseId: ${diseaseId}`,
+    );
 
     if (!userId || !diseaseId) {
+      console.warn(`[Disease-Chat] Missing data in POST request`);
       return res.status(400).json({ error: "Missing data" });
     }
 
@@ -135,6 +163,7 @@ router.post("/", async (req, res) => {
 
     processAiResponse(userId, diseaseId);
   } catch (error) {
+    console.error(`[Disease-Chat] Error in POST endpoint:`, error);
     res.status(500).json({ error: "AI processing failed" });
   }
 });

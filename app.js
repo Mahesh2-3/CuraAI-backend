@@ -40,6 +40,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Global logging middleware to log every incoming request
+app.use((req, res, next) => {
+  console.log(`[Incoming Request] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use("/ai-response", aiResponse);
 app.use("/analysis", analysis);
 app.use("/add-disease", addDisease);
