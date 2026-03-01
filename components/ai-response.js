@@ -104,11 +104,11 @@ async function processAiResponse(userId, conversationId) {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Trigger analysis asynchronously
+    // Trigger analysis asynchronously (now awaited for Serverless)
     console.log(
-      `[AI-Response] Triggering analysis asynchronously for conversationId: ${conversationId}`,
+      `[AI-Response] Triggering analysis for conversationId: ${conversationId}`,
     );
-    ProcessAnalysis(userId, conversationId);
+    await ProcessAnalysis(userId, conversationId);
     console.log(
       `[AI-Response] Successfully fully finished processAiResponse for ${conversationId}`,
     );
@@ -129,9 +129,11 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Missing data" });
     }
 
-    res.send({ started: true });
+    // WAIT for the background processing to finish
+    await processAiResponse(userId, conversationId);
 
-    processAiResponse(userId, conversationId);
+    // Only send the response AFTER it finishes so Vercel does not kill the process
+    res.json({ success: true, message: "AI response processed successfully" });
   } catch (error) {
     console.error(`[AI-Response] Error in POST endpoint:`, error);
     res.status(500).json({ error: "AI processing failed" });

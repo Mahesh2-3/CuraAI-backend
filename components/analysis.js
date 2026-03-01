@@ -96,8 +96,10 @@ router.post("/", async (req, res) => {
       console.warn(`[Analysis] Missing data in POST request`);
       return res.status(400).json({ error: "Missing data" });
     }
-    res.json({ started: true });
-    ProcessAnalysis(userId, conversationId);
+    // Wait for analysis to finish so Vercel doesn't kill the function
+    await ProcessAnalysis(userId, conversationId);
+
+    res.json({ success: true, message: "Analysis completed" });
   } catch (error) {
     console.error(`[Analysis] Error in POST endpoint:`, error);
     res.status(500).json({ error: error.message });

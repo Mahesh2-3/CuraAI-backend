@@ -159,9 +159,11 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Missing data" });
     }
 
-    res.json({ started: true });
+    // WAIT for the AI process to complete
+    await processAiResponse(userId, diseaseId);
 
-    processAiResponse(userId, diseaseId);
+    // Send the response AFTER processing finishes
+    res.json({ success: true, message: "Disease chat processed successfully" });
   } catch (error) {
     console.error(`[Disease-Chat] Error in POST endpoint:`, error);
     res.status(500).json({ error: "AI processing failed" });
