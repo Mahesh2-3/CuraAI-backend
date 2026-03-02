@@ -10,20 +10,13 @@ if (!admin.apps.length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"), // handle linebreaks
     };
-  } else {
-    // 2. Development Mode: Fall back to local file
-    try {
-      serviceAcc = require("./serviceAccount.json");
-    } catch (error) {
-    }
   }
 
   try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAcc),
     });
-  } catch (error) {
-  }
+  } catch (error) {}
 } else {
 }
 
