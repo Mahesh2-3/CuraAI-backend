@@ -40,8 +40,6 @@ async function getDefaultData(userId) {
 
     const settings = settingsSnap.exists ? settingsSnap.data() : {};
 
-. Returning basicInfo and settings.`,
-    );
     return {
       success: true,
       data: { basicInfo, settings },
