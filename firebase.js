@@ -1,3 +1,10 @@
+/**
+ * firebase.js
+ * 
+ * Node Firebase Admin Initialization.
+ * - Logs service account configurations to grant secure server-side Firestore access.
+ */
+
 const admin = require("firebase-admin");
 
 if (!admin.apps.length) {

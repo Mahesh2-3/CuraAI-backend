@@ -1,3 +1,10 @@
+/**
+ * delete-all-convo.js
+ * 
+ * Bulk conversation remover.
+ * - Purges all chat records under the specified user's Firestore workspace.
+ */
+
 const express = require("express");
 const router = express.Router();
 

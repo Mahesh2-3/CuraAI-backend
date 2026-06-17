@@ -1,3 +1,10 @@
+/**
+ * report.js
+ * 
+ * System Feedback / Bug Reports controller.
+ * - Registers user report logs into system collections.
+ */
+
 const express = require("express");
 const router = express.Router();
 const nodemailer = require("nodemailer");

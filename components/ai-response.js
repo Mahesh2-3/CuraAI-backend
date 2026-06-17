@@ -1,3 +1,11 @@
+/**
+ * ai-response.js
+ * 
+ * AI Chat Query Dispatcher.
+ * - Handles posting chat prompts to the Python server engine.
+ * - Receives responses and records conversational updates back to user databases.
+ */
+
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");

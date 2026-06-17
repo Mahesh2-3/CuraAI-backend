@@ -1,3 +1,11 @@
+/**
+ * otp.js
+ * 
+ * Nodemailer OTP Service.
+ * - Generates random verification codes.
+ * - Dispatches HTML/text emails utilizing SMTP configurations.
+ */
+
 const express = require("express");
 const router = express.Router();
 const nodemailer = require("nodemailer");

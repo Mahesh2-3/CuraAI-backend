@@ -1,3 +1,11 @@
+/**
+ * get-summary.js
+ * 
+ * Medical Report Summarizer Controller.
+ * - Sends user reports to Python AI server to process long texts.
+ * - Stores markdown summaries under users summaries tables.
+ */
+
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");

@@ -1,3 +1,11 @@
+/**
+ * addDisease.js
+ * 
+ * Disease Tracker Builder.
+ * - Creates tracking records for a newly added condition.
+ * - Triggers asynchronous Python AI analyses for severity ratings.
+ */
+
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");

@@ -1,3 +1,10 @@
+/**
+ * chat.js
+ * 
+ * Disease Chat Messages Fetcher.
+ * - Fetches context data and historic messages for disease-specific chats.
+ */
+
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");

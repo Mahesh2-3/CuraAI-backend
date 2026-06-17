@@ -1,3 +1,10 @@
+/**
+ * delete-convo.js
+ * 
+ * Single Chat Record Purger.
+ * - Removes specific conversation document and all associated messages logs.
+ */
+
 const express = require("express");
 const router = express.Router();
 

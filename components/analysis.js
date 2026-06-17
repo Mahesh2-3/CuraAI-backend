@@ -1,3 +1,11 @@
+/**
+ * analysis.js
+ * 
+ * Disease Analyzer Controller.
+ * - Forwards disease details to the Python LLM server.
+ * - Updates the diagnosed database record with calculated severity logs.
+ */
+
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");

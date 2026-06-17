@@ -1,3 +1,10 @@
+/**
+ * getdeaultData.js
+ * 
+ * Default Config Fetcher.
+ * - Queries and falls back to base profile metadata values if empty parameters are encountered.
+ */
+
 const { admin, db } = require("../firebase.js");
 
 async function getDefaultData(userId) {

@@ -1,3 +1,12 @@
+/**
+ * app.js
+ * 
+ * Node/Express Main Server Application.
+ * - Configures middle-wares (CORS, body parser).
+ * - Maps API routes to controllers (OTP verification, AI replies, disease saving).
+ * - Serves as main entry point for the REST API.
+ */
+
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -66,4 +75,6 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(port, () => {});
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

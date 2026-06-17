@@ -1,3 +1,10 @@
+/**
+ * create-default.js
+ * 
+ * User Profile Initializer.
+ * - Populates fresh database structures/settings records for newly registered accounts.
+ */
+
 const express = require("express");
 const router = express.Router();
 const { admin, db } = require("../firebase.js");
