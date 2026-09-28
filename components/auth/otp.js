@@ -1,6 +1,6 @@
 /**
  * otp.js
- * 
+ *
  * Nodemailer OTP Service.
  * - Generates random verification codes.
  * - Dispatches HTML/text emails utilizing SMTP configurations.
@@ -31,15 +31,24 @@ router.post("/send-otp", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Store in Firestore with a 10 minute expiration
-    await db
-      .collection("otps")
-      .doc(email)
-      .set({
-        otp: otp,
-        expiresAt: admin.firestore.Timestamp.fromDate(
-          new Date(Date.now() + 10 * 60 * 1000),
-        ),
+    try {
+      await db
+        .collection("otps")
+        .doc(email)
+        .set({
+          otp: otp,
+          expiresAt: admin.firestore.Timestamp.fromDate(
+            new Date(Date.now() + 10 * 60 * 1000),
+          ),
+        });
+    } catch (firestoreError) {
+      console.error("Firestore Error:", firestoreError);
+      return res.status(500).json({
+        error: "Failed to store OTP",
+        details: firestoreError.message,
+        code: firestoreError.code,
       });
+    }
 
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       const mailOptions = {
